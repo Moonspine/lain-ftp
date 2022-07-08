@@ -37,3 +37,6 @@ No matter which computer you're using, though, if you can run a GWBasic-compatib
 
 ## What's with the name?
 So when I started writing this, I needed a folder to put the code in. I was experimenting with serial file transfer, so I called it "Serial Experiments." Naturally, the connection to "Serial Experiments Lain" came to mind, and I had no choice but to call it LainFTP.  
+
+## License
+This project is licensed under the MIT license.
