@@ -1,7 +1,14 @@
-10 CLS
-20 OPEN "COM1:19200,N,8,1" AS #1
-30 GOSUB 6000
-40 END
+10 REM In order to use this stub, change "StubDisk" on line 40 to the name of a folder in the "Disks" subfolder next to your LainFTP.exe file.
+20 REM This "Disks/StubDisk" folder should contain the file you want to download (i.e. laincdos.exe or the like.)
+30 CLS
+40 OPEN "COM1:19200,N,8,1" AS #1
+50 PRINT# 1, "DISK StubDisk" + CHR$(10)
+60 INPUT# 1, RESPONSE$
+70 IF RESPONSE$ = "OK" THEN goto 100
+80 PRINT RESPONSE$
+90 END
+100 GOSUB 6000
+80 END
 6000 REM ====================
 6010 REM | DOWNLOAD command |
 6020 REM ====================

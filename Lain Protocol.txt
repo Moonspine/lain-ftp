@@ -1,0 +1,86 @@
+The following commands are available on the client side:
+
+DISK [<diskname>]\n
+DIR [<dirname>]\n
+LIST\n
+UPLOADA <filename> <size> <packetSize = 16>\n
+DOWNLOADA <filename> <packetSize = 16>\n
+UPLOADB <filename> <packetSize = 16>\n
+DOWNLOADB <filename> <packetSize = 16>\n
+
+(Note that all of these commands are newline-terminated)
+
+Where:
+<diskname> is the name of a disk (will be created automatically if not present) (cannot contain invalid Windows filename characters or the ".." path)
+<dirname> is the name of a directory on the current disk, relative to the disk root (will be created if not present) (cannot contain the ".." path)
+<filename> is the name of a file, relative to the current directory on the current disk (cannot contain invalid Windows filename characters or the ".." path)
+<size> is the file size (ASCII encoded)
+<packetSize> is the expected data transfer packet size, in bytes
+
+
+DISK [<diskname>]
+- Changes the current disk to the named disk
+- If the disk does not exist, it will be created
+- On completion, the Lain server will send back "OK\r\n"
+-- On error, it will reply with "ERR: <Error message>\r\n"
+- If <diskName> is not provided, instead echoes the current disk name
+
+DIR <dirname>
+- Changes the directory to the specified directory
+- The directory will be created, along with any parent directories, if it does not exist
+- On completion, the Lain server will send back "OK\r\n"
+-- On error, it will reply with "ERR: <Error message>\r\n"
+- If <dirname> is not provided, instead echoes the current directory name
+
+LIST
+- Lists all files that are in the current directory on the current disk
+- The Lain server will send back packets of data which are in the format:
+<D|F>FILENAME.EXT\r\n
+- Filenames can be longer than DOS 8.3 format, so it's up to the client to truncate if necessary
+- After each packet, the Lain server will wait for an "OK\n" from the client
+- After all packets are sent, the Lain server will send back a single "EOF\n" packet
+- Example packets:
+"FMYFILE.TXT\r\n"
+"DMYDIR\r\n"
+"FA.B\r\n"
+"EOF\r\n"
+
+UPLOADA <filename> <size> <packetSize>
+- Begins an upload operation using ASCII data, overwriting the given filename
+- The UPLOADA protocol is as follows:
+-- client sends "UPLOADA <filename> <size> <packetSize>"
+-- Lain server replies <size>
+-- Cient sends packets, each of which is in the following format (in ASCII-encoded hex):
+--- <dataByte[1]><dataByte[2]>...<dataByte[packetSize]>\r\n
+-- Lain server replies with the received size if the transfer is successful, 0 if not (a resend should be attempted if 0 is received on the client side, up to X attempts)
+-- When all packets are sent, the file transfer is complete (no need to acknowledge, since both parties know the total file size and packet received status)
+
+DOWNLOADA <filename> <packetSize>
+- Begins a download operation for the given filename
+- The DOWNLOADA protocol is pretty much the same as the UPLOADA protocol, just with the roles reversed:
+-- Client sends "DOWNLOADA <filename> <packetSize>"
+-- Lain server sends the file size (as ASCII)
+-- Client sends the file size back
+-- Lain server sends packets in the same manner as the UPLOADA command, and the client replies in the same manner
+
+UPLOADB <filename> <packetSize>
+- Begins an upload operation using binary data, overwriting the given filename
+- The UPLOADB protocol is as follows:
+-- Client sends "UPLOADB <filename> <packetSize>"
+-- Lain server replies "OK\r\n"
+-- Client sends packets, each of which is in the following format:
+--- <packetSizeLow><packetSizeHigh><dataByte[1]><dataByte[2]>...<dataByte[packetSize]>
+-- Lain server replies "OK\r\n" if the transfer was successful, "RETRY\r\n" if a retry is needed, "ABORT\r\n" if a fatal error occurred and we need to stop (a resend should be attempted if "RETRY\r\n" is received on the client side, up to X attempts)
+-- When the HP is done sending, it just needs to send a packet whose <packetSizeLow> and <packetSizeHigh> bytes are both zero
+
+DOWNLOADB <filename> <packetSize>
+- Begins a download operation for the given filename
+- The DOWNLOADB protocol is pretty much the same as the UPLOADB protocol, just with the roles reversed:
+-- Client sends "DOWNLOADB <filename> <packetSize>"
+-- Lain server sends packets in the same manner as in UPLOADB
+-- Client replies "OK\r\n", "RETRY\r\n", or "ABORT\r\n" as the Lain server would
+
+
+
+The Lain server stores disks as subfolders of the "Disks" folder next to the Lain server executable.
+The client is not allowed to specify directories outside of the disk (an error should be returned if the client tries to "CHANGEDIR ..\", for example

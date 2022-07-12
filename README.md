@@ -22,6 +22,8 @@ Note: LainFTP uses the following serial settings at all times (it's part of how 
 - 8 data bits
 - 1 stop bit
 - No handshaking
+Once the server is running, just run the Lain client on the retro computer. It should connect to the server and display a menu asking what you'd like to do.  
+The entire client is menu-driven, so it's pretty self-explanatory.  
 
 If you manage to successfully use this (like I said, I've only tested it with a very non-IBM PC, the HP-150), let me know anything odd you had to do and I'll update these instructions!  
 If you don't manage to successfuly use this, let me know the difficulties you ran into and I'll try to fix it (and update these instructions).  
@@ -34,6 +36,22 @@ After that, you can run the program and download the full basic program ([laincl
 The executable version? I don't know! I wrote this to work for the HP-150 ([LAINC150.EXE](Release/LAINC150.EXE)). I tried to create a fallback for standard DOS serial communications ([LAINCDOS.EXE](Release/LAINCDOS.EXE)), but I have not yet been able to test it.  
 Please let me know if it does/doesn't work for you and I can try to fix it!  
 No matter which computer you're using, though, if you can run a GWBasic-compatible basic interpreter, you should be fine using [lainclnt.bas](LainClient/lainclnt.bas)  
+
+## But how does it work?
+The entire protocol is described in [Lain Protocol.txt](Lain Protocol.txt).  
+Although... some of the error handling isn't exactly implemented to the spec (in particular, missed packets would tend to result in hung file transfers dur to the client code not properly timing out.)  
+In practice, however, this has never been a problem for my usage with my HP-150. I don't expect one would have many communication errors without faulty hardware.  
+
+## Can you explain the source code tree?
+Sure!  
+- [LainFTP](LainFTP) = The C# source for the LainFTP server program. This program runs the actual file server on the modern PC.
+- [LainClient/lainclnt.bas](LainClient/lainclnt.bas) = The GWBasic program (binary format) for the Lain client. This one can be run on the retro computer in GWBasic to (slowly) transfer files to/from the LainFTP server.
+- [LainClient/lainclnt-ASCII.bas](LainClient/lainclnt-ASCII.bas) = The GWBasic program (ASCII format) for the Lain client. Identical to lainclnt.bas, just... in ASCII. Useful if you need to translate to your favorite Basic dialect.
+- [LainClient/lainclnt-stub-ASCII.bas](LainClient/lainclnt-stub-ASCII.bas) = A stubby version of the GWBasic client program designed specifically to download one file (namely a more full version of the client.)
+- [LainClient/lainclnt](LainClient/lainclnt) = The 8086 assembly code for the Lain client executable. To build, just run MASM 4.0 (or a compatible version) on [main.asm](LainClient/lainclnt/main.asm). Please note the HP-150 define at the top of the file before assembly. 
+- [Release/LainFTP.exe](Release/LainFTP.exe) = Prebuilt Windows version of the LainFTP program. If you're running Linux, you'll need to build from [the source](LainFTP).
+- [Release/LAINC150.EXE](Release/LAINC150.EXE) = The HP-150 DOS version of the client executable for fast file transfer. You probably don't want this one, unless you just happen to have an HP-150 computer. It handles its serial ports a bit different from an IBM PC.
+- [Release/LAINCDOS.EXE](Release/LAINCDOS.EXE) = The standard DOS version of the client executable for fast file transfer.
 
 ## What's with the name?
 So when I started writing this, I needed a folder to put the code in. I was experimenting with serial file transfer, so I called it "Serial Experiments." Naturally, the connection to "Serial Experiments Lain" came to mind, and I had no choice but to call it LainFTP.  
