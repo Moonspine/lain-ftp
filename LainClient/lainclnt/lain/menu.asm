@@ -76,6 +76,18 @@ CHECK_CHOICE_5:
 	
 CHECK_CHOICE_6:
 	cmp al, "6"
+	jne CHECK_CHOICE_7
+	call uploadDirProc
+	jmp DISPLAY_MENU
+	
+CHECK_CHOICE_7:
+	cmp al, "7"
+	jne CHECK_CHOICE_8
+	call downloadDirProc
+	jmp DISPLAY_MENU
+	
+CHECK_CHOICE_8:
+	cmp al, "8"
 	jne INVALID_CHOICE
 	call exitProc
 	

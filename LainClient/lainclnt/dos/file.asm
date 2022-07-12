@@ -63,6 +63,34 @@ callCloseFile MACRO p_fileHandle
 	call closeFile
 ENDM
 
+; Sets the DTA (Disk Transfer Area) address to the given buffer
+callSetDTA MACRO newDTA
+	mov dx, seg newDTA
+	mov ds, dx
+	mov dx, offset newDTA
+	call setDTA
+ENDM
+
+; Find the first file matching the null-terminated search string in searchBuffer
+; If the call succeeds, ax will be zero and the DTA will contain file info
+; If the call fails, the error code will be in ax
+callFindFirstFile MACRO searchBuffer
+	mov dx, seg searchBuffer
+	mov ds, dx
+	mov dx, offset searchBuffer
+	call findFirstFile
+ENDM
+
+; Find the next file matching the null-terminated search string in searchBuffer
+; If the call succeeds, ax will be zero and the DTA will contain file info
+; If the call fails, the error code will be in ax
+callFindNextFile MACRO searchBuffer
+	mov dx, seg searchBuffer
+	mov ds, dx
+	mov dx, offset searchBuffer
+	call findNextFile
+ENDM
+
 
 ; Opens the file specified by the null-terminated string in ds:dx
 ; If successful, bx will be zero and the resulting file handle will be in ax
@@ -134,3 +162,41 @@ closeFile PROC
 	int 21h
 	ret
 closeFile ENDP
+
+; Sets the DTA (Disk Transfer Area) address to ds:dx
+setDTA PROC
+	mov ah, 1ah
+	int 21h
+	ret
+setDTA ENDP
+
+; Find the first file matching the search string in ds:dx (details stored in the DTA)
+; If the call succeeds, ax will be zero
+; If the call fails, the error code will be in ax
+findFirstFile PROC
+	; Get the first file
+	mov ah, 4eh
+	mov cx, 37h ; Find any file/directory
+	int 21h
+	jae findFirstFile_Continue
+	ret
+	
+findFirstFile_Continue:
+	mov ax, 0
+	ret
+findFirstFile ENDP
+
+; Find the next file matching the search string in ds:dx (details stored in the DTA)
+; If the call succeeds, ax will be zero
+; If the call fails, the error code will be in ax
+findNextFile PROC
+	; Get the next file
+	mov ah, 4fh
+	int 21h
+	jae findNextFile_Continue
+	ret
+	
+findNextFile_Continue:
+	mov ax, 0
+	ret
+findNextFile ENDP

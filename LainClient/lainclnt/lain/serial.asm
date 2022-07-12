@@ -5,16 +5,19 @@
 ; Calls the correct readSerialPort* proc
 ; Reads up to cx bytes from the serial port whose handle is in bx into the buffer in ds:dx
 callReadSerialPort MACRO
+ifndef isEmu
 ifdef isHP150
 	call readSerialPortHP150
 else
 	call readSerialPortStandardDOS
+endif
 endif
 ENDM
 
 ; Calls the appropriate writeSerialPortBytes* proc
 ; Writes cx bytes from serialBuffer to the serial port whose handle is in serialPortHandle
 callWriteSerialPortBytes MACRO
+ifndef isEmu
 ifdef isHP150
 	call writeSerialPortBytesHP150
 else
@@ -23,6 +26,7 @@ else
 	mov ds, dx
 	mov dx, OFFSET serialBuffer
 	call writeSerialPortBytesStandardDOS
+endif
 endif
 ENDM
 

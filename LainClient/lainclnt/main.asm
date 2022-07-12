@@ -5,8 +5,13 @@
 .8086
 
 DATA segment
+	; Define this "variable" if assembling for an emulator without serial port support, such as DOSBOX
+	isEmu db 0
+	
+ifndef isEmu
 	; Define this "variable" if assembling for the HP-150 (don't define it if assembling for standard DOS)
 	isHP150 db 0
+endif
 	
 	; Application configuration
 	; 128-byte packets seem to be the largest the HP-150 can handle successfully
@@ -14,7 +19,7 @@ DATA segment
 	config_uploadPacketSize dw 128
 
 	; Menu strings
-	menuStr_Version db "LainFTP Client Version 2.00", 13, 10, "$"
+	menuStr_Version db "LainFTP Client Version 2.1", 13, 10, "$"
 	menuStr_CurrentDisk db "Current disk: ", "$"
 	menuStr_CurrentDir db "Current directory: ", "$"
 	menuStr_List_Start db "Enter a choice from the following menu:", 13, 10
@@ -23,7 +28,9 @@ DATA segment
 	menuStr_List_3 db "3. List files", 13, 10
 	menuStr_List_4 db "4. Upload file to server", 13, 10
 	menuStr_List_5 db "5. Download file from server", 13, 10
-	menuStr_List_6 db "6. Quit", 13, 10, "$"
+	menuStr_List_6 db "6. Upload directory to server", 13, 10
+	menuStr_List_7 db "7. Download directory from server", 13, 10
+	menuStr_List_8 db "8. Quit", 13, 10, "$"
 	menuStr_InvalidChoice db "Invalid choice. Must be between 1 and 6, inclusive.", 13, 10, "$"
 	
 	; 1) Change disk strings
@@ -56,6 +63,14 @@ DATA segment
 	downloadStr_progressMessage_2 db " (", 0
 	downloadStr_progressMessage_3 db " bytes)", 13, 10, "$", 0
 	downloadStr_finished db "File downloaded successfully", 13, 10, 13, 10, "$"
+	
+	; 6) Upload directory strings
+	uploadDirStr_localDirPrompt db "Enter the local directory to upload to the server (empty line to cancel)", 13, 10, "$"
+	uploadDirStr_confirmPrompt db 13, 10, 13, 10, "Are you sure you have the right disk/directory set?", 13, 10, "Duplicate files on the server will be overwritten!", 13, 10, 13, 10, "Type 'Y' to start, anything else to cancel.", 13, 10, "$"
+	
+	; 7) Download directory strings
+	downloadDirStr_localDirPrompt db "Enter the local directory to download into (empty line to cancel)", 13, 10, "$"
+	downloadDirStr_confirmPrompt db 13, 10, 13, 10, "Are you sure you have the right disk/directory set?", 13, 10, "Duplicate files on the local disk will be overwritten!", 13, 10, 13, 10, "Type 'Y' to start, anything else to cancel.", 13, 10, "$"
 	
 	; General strings
 	str_NewLine db 13, 10, "$", 0
@@ -102,6 +117,12 @@ DATA segment
 	fileBytesRead dw 0
 	fileBufferLength dw 1024
 	fileBuffer db 1024 dup(?)
+	
+	dta db 21 dup(0)
+	dtaFileAttribute db 0
+	dtaMisc db 8 dup(0)
+	dtaFilename db 13 dup(0)
+	dtaBuffer db 87 dup(0)
 
 	; Input buffers
 	inputBufferInfo db 255    ; Max length
@@ -158,6 +179,8 @@ INCLUDE lain\menu.asm
 ; Lain function includes
 INCLUDE lain\function\upload.asm
 INCLUDE lain\function\download.asm
+INCLUDE lain\function\ul_dir.asm
+INCLUDE lain\function\dl_dir.asm
 INCLUDE lain\function\diskdir.asm
 INCLUDE lain\function\list.asm
 
@@ -168,6 +191,11 @@ START:
 
 	; Open and initialize serial port
 	call setupSerialPort
+	
+	; Set the DTA so we can find it later
+	callSetDTA dta
+	
+	; Display the menu
 	call menuProc
 
 	call exitProc
