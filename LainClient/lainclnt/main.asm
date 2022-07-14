@@ -6,7 +6,7 @@
 
 DATA segment
 	; Define this "variable" if assembling for an emulator without serial port support, such as DOSBOX
-	isEmu db 0
+	;isEmu db 0
 	
 ifndef isEmu
 	; Define this "variable" if assembling for the HP-150 (don't define it if assembling for standard DOS)
@@ -31,7 +31,7 @@ endif
 	menuStr_List_6 db "6. Upload directory to server", 13, 10
 	menuStr_List_7 db "7. Download directory from server", 13, 10
 	menuStr_List_8 db "8. Quit", 13, 10, "$"
-	menuStr_InvalidChoice db "Invalid choice. Must be between 1 and 6, inclusive.", 13, 10, "$"
+	menuStr_InvalidChoice db "Invalid choice. Must be between 1 and 8, inclusive.", 13, 10, "$"
 	
 	; 1) Change disk strings
 	diskStr_Prompt db "Enter name of disk to switch to (empty line to cancel)", 13, 10, "$"
@@ -67,6 +67,7 @@ endif
 	; 6) Upload directory strings
 	uploadDirStr_localDirPrompt db "Enter the local directory to upload to the server (empty line to cancel)", 13, 10, "$"
 	uploadDirStr_confirmPrompt db 13, 10, 13, 10, "Are you sure you have the right disk/directory set?", 13, 10, "Duplicate files on the server will be overwritten!", 13, 10, 13, 10, "Type 'Y' to start, anything else to cancel.", 13, 10, "$"
+	uploadDirStr_uploadFailed db 13, 10, "Upload failed", 13, 10, 13, 10, "$"
 	
 	; 7) Download directory strings
 	downloadDirStr_localDirPrompt db "Enter the local directory to download into (empty line to cancel)", 13, 10, "$"
@@ -83,12 +84,14 @@ endif
 	fileErrorStr_OpenReadFailed db 13, 10, "Failed to open the file for read", 13, 10, 13, 10, "$"
 	fileErrorStr_WriteFailed db 13, 10, "Failed to write to the file", 13, 10, 13, 10, "$"
 	fileErrorStr_ReadFailed db 13, 10, "Failed to read from the file", 13, 10, 13, 10, "$"
+	fileErrorStr_FileListFailed db 13, 10, "Failed to list files in the directory; aborting", 13, 10, 13, 10, "$"
 	fileErrorStr_Generic db 13, 10, "File I/O failed", 13, 10, 13, 10, "$"
 	
 	
 	; Command strings (null-terminated)
 	commandStr_DISK_NoParam db "DISK", 10, 0
 	commandStr_DIR_NoParam db "DIR", 10, 0
+	commandStr_DIR_Param db "DIR ", 0
 	commandStr_LIST_NoParam db "LIST", 10, 0
 	commandStr_DOWNLOAD_1 db "DOWNLOADB ", 0
 	commandStr_DOWNLOAD_2 db " ", 0
@@ -96,6 +99,7 @@ endif
 	commandStr_UPLOADB_1 db "UPLOADB ", 0
 	commandStr_UPLOADB_2 db " ", 0
 	commandStr_UPLOADB_3 db 13, 10, 0
+	commandStr_Newline db 10, 0
 	
 	; Response strings (null-terminated)
 	responseStr_OK db "OK", 13, 10, 0
@@ -105,10 +109,12 @@ endif
 	
 	; Device strings (null-terminated)
 	serialPortName db "COM1", 0
-	
 
 	; Error messages
 	serialPortError db 13, 10, "Error: Failed to open serial port. Exiting.", 13, 10, 13, 10, "$"
+	
+	; File search strings
+	fileSearch_AllFiles db "*.*", 0
 	
 	; File variables
 	fileHandle dw 0
@@ -133,7 +139,13 @@ endif
 	inputBuffer2Length db 0    ; Actual length read by DOS
 	inputBuffer2 db 255 dup(?) ; Actual characters read by dos
 	
-	scratchBuffer db 255 dup(?)
+	localFileBufferInfo db 255    ; Max length
+	localFileBufferLength db 0    ; Actual length read by DOS
+	localFileBuffer db 255 dup(?) ; Actual characters read by dos
+
+	lainFileBufferInfo db 255    ; Max length
+	lainFileBufferLength db 0    ; Actual length read by DOS
+	lainFileBuffer db 255 dup(?) ; Actual characters read by dos
 	
 	; Serial port variables
 	serialPortHandle dw 0
@@ -153,9 +165,27 @@ endif
 	hp150SerialSendBufferSegment dw SEG serialBuffer
 	hp150SerialSendBufferLength dw 0
 	
+	; String stack
+	strStackMaxOffset dw 511
+	strStackIndex dw 0
+	strStack db 512 dup(?), 13, 10, "$"
+	
 	; Misc. variables
 	tempVar dw 0
 	tempVar2 dw 0
+	tempVar3 dw 0
+	
+	; Scratch buffer
+	scratchBuffer db 255 dup(?)
+	scratchBuffer2 db 255 dup(?)
+	
+	debugStrA db "A", 13, 10, "$"
+	debugStrB db "B", 13, 10, "$"
+	debugStrC db "C", 13, 10, "$"
+	debugStrD db "D", 13, 10, "$"
+	debugStrE db "E", 13, 10, "$"
+	debugStrF db "F", 13, 10, "$"
+	debugStrG db "G", 13, 10, "$"
 DATA ends
 
 CODE segment
@@ -174,6 +204,8 @@ INCLUDE hp150\serial.asm
 INCLUDE lain\serial.asm
 INCLUDE lain\memory.asm
 INCLUDE lain\string.asm
+INCLUDE lain\lainutil.asm
+INCLUDE lain\strstack.asm
 INCLUDE lain\menu.asm
 
 ; Lain function includes

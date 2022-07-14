@@ -65,9 +65,9 @@ ENDM
 
 ; Sets the DTA (Disk Transfer Area) address to the given buffer
 callSetDTA MACRO newDTA
-	mov dx, seg newDTA
+	mov dx, SEG newDTA
 	mov ds, dx
-	mov dx, offset newDTA
+	mov dx, OFFSET newDTA
 	call setDTA
 ENDM
 
@@ -75,9 +75,9 @@ ENDM
 ; If the call succeeds, ax will be zero and the DTA will contain file info
 ; If the call fails, the error code will be in ax
 callFindFirstFile MACRO searchBuffer
-	mov dx, seg searchBuffer
+	mov dx, SEG searchBuffer
 	mov ds, dx
-	mov dx, offset searchBuffer
+	mov dx, OFFSET searchBuffer
 	call findFirstFile
 ENDM
 
@@ -85,9 +85,9 @@ ENDM
 ; If the call succeeds, ax will be zero and the DTA will contain file info
 ; If the call fails, the error code will be in ax
 callFindNextFile MACRO searchBuffer
-	mov dx, seg searchBuffer
+	mov dx, SEG searchBuffer
 	mov ds, dx
-	mov dx, offset searchBuffer
+	mov dx, OFFSET searchBuffer
 	call findNextFile
 ENDM
 

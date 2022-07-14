@@ -37,6 +37,7 @@ namespace LainFTP.Lain {
                 Directory.CreateDirectory(newDisk);
                 currentDirectory = currentDisk = newDisk;
                 currentDiskName = diskName;
+                currentDirectoryName = "\\";
                 return LainFSError.OK;
             } catch (Exception) {
                 // Whatever the reason, this failed

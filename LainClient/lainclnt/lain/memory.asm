@@ -24,17 +24,18 @@ MEM_COPY_RET:
 memcopy ENDP
 
 ; Copies bytes from ds:di to es:bx until 0 is read from ds:di
-; Note: Does not copy the null
-; After the call, the number of bytes copied will be in cx
+; Note: Copies the null terminator
+; After the call, the number of non-null bytes copied will be in cx
+; After the call, es:bx will point to the next character in destinationBuffer (the null terminator), so calls can be chained
 memcopyUntilNull PROC
 	mov cx, 0
 memcopyUntilNull_LOOP:
 	mov al, [ds:di]
+	mov [es:bx], al
 	cmp al, 0
 	je memcopyUntilNull_RETURN
 	
-	; Copy byte
-	mov [es:bx], al
+	; Next character
 	inc cx
 	
 	; Update the pointers and loop

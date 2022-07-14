@@ -3,7 +3,11 @@
 ; Available for use under the MIT license
 
 ; Upload the file whose local filename is contained in inputBuffer to the server as the filename contained in inputBuffer2
+; After the call, ax will be 0 if no errors occurred
 uploadFile PROC
+	; Default state is error (gets set to zero on success)
+	mov tempVar3, 1
+
 	; Initial confirmation message
 	copyDataNullTerminated uploadStr_uploading, serialBuffer
 	copyDataNullTerminatedContinue inputBuffer
@@ -134,6 +138,9 @@ uploadFile_SEND_FINISHED:
 	; Print success message
 	callPrintString uploadStr_Finished
 	
+	; Success
+	mov tempVar3, 0
+	
 uploadFile_FINISHED:
 	; Close the file
 	callCloseFile fileHandle
@@ -141,6 +148,8 @@ uploadFile_FINISHED:
 	jmp uploadFile_RETURN
 
 uploadFile_RETURN:
+	mov ax, tempVar3
+
 	ret
 uploadFile ENDP
 
@@ -172,5 +181,6 @@ uploadFileProc_UPLOAD:
 	call uploadFile
 
 uploadFileProc_RETURN:
+	mov ax, tempVar3
 	ret
 uploadFileProc ENDP

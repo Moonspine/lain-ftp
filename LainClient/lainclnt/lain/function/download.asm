@@ -3,7 +3,11 @@
 ; Available for use under the MIT license
 
 ; Downloads the file whose filename is contained in inputBuffer from the Lain server the the local filename specified in inputBuffer2
+; After the call, ax will be 0 if no errors occurred
 downloadFile PROC
+	; Default state is error (gets set to zero on success)
+	mov tempVar3, 1
+
 	; Initial confirmation message
 	copyDataNullTerminated downloadStr_downloading, serialBuffer
 	copyDataNullTerminatedContinue inputBuffer
@@ -135,6 +139,7 @@ downloadFile_ABORT:
 	callCloseFile fileHandle
 	
 downloadFile_RETURN:
+	mov ax, tempVar3
 	ret
 downloadFile ENDP
 

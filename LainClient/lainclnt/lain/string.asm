@@ -17,6 +17,29 @@ callCompareStrings MACRO stringA, stringB, maxLength
 	call compareStrings
 ENDM
 
+; Copies only the filename (the part after the last ':' or '\') from null-terminated bufferA to bufferB
+callCopyFilenameOnly MACRO bufferA, bufferB
+	mov di, SEG bufferA
+	mov ds, di
+	mov di, OFFSET bufferA
+	mov bx, SEG bufferB
+	mov es, bx
+	mov bx, OFFSET bufferB
+	call copyFilenameOnly
+ENDM
+
+; Appends character to the null-terminated string in buffer if it is not already present at the end of the string
+; After the call, ds:di will point to the null terminator
+callAppendCharacterIfAbsent MACRO buffer, character
+	mov di, SEG buffer
+	mov ds, di
+	mov di, OFFSET buffer
+	
+	mov cl, character
+	
+	call appendCharacterIfAbsent
+ENDM
+
 ; Compares up to cx bytes from ds:di to es:bx
 ; After the call, ax will be 0 if they are equal, nonzero if they are not equal
 compareStrings PROC
@@ -131,13 +154,32 @@ copyFilenameOnly_CONTINUE:
 	ret
 copyFilenameOnly ENDP
 
-; Copies only the filename (the part after the last ':' or '\') from null-terminated bufferA to bufferB
-callCopyFilenameOnly MACRO bufferA, bufferB
-	mov di, SEG bufferA
-	mov ds, di
-	mov di, OFFSET bufferA
-	mov bx, SEG bufferB
-	mov es, bx
-	mov bx, OFFSET bufferB
-	call copyFilenameOnly
-ENDM
+; Appends the character in cl to the null-terminated string in ds:di if it is not already present at the end of the string
+; After the call, ds:di will point to the null terminator
+appendCharacterIfAbsent PROC
+	; Seek to the end of the string, tracking the last character in bh
+	mov bl, 0
+appendCharacterIfAbsent_SEEK:
+	mov bh, bl
+	mov bl, [ds:di]
+	cmp bl, 0
+	je appendCharacterIfAbsent_CONTINUE
+	
+	inc di
+	jmp appendCharacterIfAbsent_SEEK
+	
+appendCharacterIfAbsent_CONTINUE:
+	; Return if the last character is already equal to cl
+	cmp bh, cl
+	je appendCharacterIfAbsent_RETURN
+	
+	; Append the character and an extra null
+	mov [ds:di], cl
+	inc di
+	mov bl, 0
+	mov [ds:di], bl
+	
+appendCharacterIfAbsent_RETURN:
+	ret
+appendCharacterIfAbsent ENDP
+
