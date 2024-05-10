@@ -39,7 +39,7 @@ downloadFile_FILEOPENED:
 	copyDataNullTerminatedContinue commandStr_DOWNLOAD_3
 	mov cx, bx
 	sub cx, OFFSET serialBuffer
-	callWriteSerialPortBytes
+	call writeSerialPortImpl
 	
 	; Receive packets
 	mov tempVar, 1
@@ -112,7 +112,7 @@ downloadFile_PRINT_PROGRESS:
 	copyDataNullTerminated responseStr_OK, serialBuffer
 	mov cx, bx
 	sub cx, OFFSET serialBuffer
-	callWriteSerialPortBytes
+	call writeSerialPortImpl
 	
 	; Update next packet
 	inc tempVar
@@ -135,7 +135,7 @@ downloadFile_ABORT:
 	copyDataNullTerminated responseStr_ABORT, serialBuffer
 	mov cx, bx
 	sub cx, OFFSET serialBuffer
-	callWriteSerialPortBytes
+	call writeSerialPortImpl
 	callCloseFile fileHandle
 	
 downloadFile_RETURN:

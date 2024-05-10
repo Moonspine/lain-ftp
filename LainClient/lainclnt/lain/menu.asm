@@ -83,8 +83,10 @@ CHECK_CHOICE_6:
 CHECK_CHOICE_7:
 	cmp al, "7"
 	jne CHECK_CHOICE_8
-	call downloadDirProc
-	jmp DISPLAY_MENU
+	jmp INVALID_CHOICE
+	; Feature not yet implemented
+	;call downloadDirProc
+	;jmp DISPLAY_MENU
 	
 CHECK_CHOICE_8:
 	cmp al, "8"

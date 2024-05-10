@@ -12,7 +12,7 @@ namespace LainFTP {
             }
 
             LainFilesystem filesystem = new LainFilesystem(AppContext.BaseDirectory + "Disks\\");
-            LainFTPServer server = new LainFTPServer(filesystem, args[0], uint.Parse(args[1]));
+            LainFTPServer server = new LainFTPServer(filesystem, args[0], uint.Parse(args[1]), args.Length > 2 ? bool.Parse(args[2]) : false);
             server.connect();
 
             if (!server.isRunning()) {
@@ -35,10 +35,10 @@ namespace LainFTP {
 
         private static void printUsage() {
             Console.Out.WriteLine("Usage:");
-            Console.Out.WriteLine("LainFTP <portName> [baudRate = 19200]");
+            Console.Out.WriteLine("LainFTP <portName> [baudRate = 19200] [useDtrRts = false]");
             Console.Out.WriteLine();
             Console.Out.WriteLine("For example:");
-            Console.Out.WriteLine("LainFTP COM1 1200");
+            Console.Out.WriteLine("LainFTP COM1 9600 true");
         }
     }
 }

@@ -75,5 +75,5 @@ ENDM
 ; Copies null-terminated data from dataBuffer into the serial buffer and sends it (without the terminating null)
 copyAndSendDataNullTerminated MACRO dataBuffer
 	copyDataNullTerminated dataBuffer, serialBuffer
-	callWriteSerialPortBytes
+	call writeSerialPortImpl
 ENDM

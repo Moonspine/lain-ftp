@@ -5,14 +5,6 @@
 .8086
 
 DATA segment
-	; Define this "variable" if assembling for an emulator without serial port support, such as DOSBOX
-	;isEmu db 0
-	
-ifndef isEmu
-	; Define this "variable" if assembling for the HP-150 (don't define it if assembling for standard DOS)
-	isHP150 db 0
-endif
-	
 	; Application configuration
 	; 128-byte packets seem to be the largest the HP-150 can handle successfully
 	config_downloadPacketSize dw 128
@@ -29,7 +21,8 @@ endif
 	menuStr_List_4 db "4. Upload file to server", 13, 10
 	menuStr_List_5 db "5. Download file from server", 13, 10
 	menuStr_List_6 db "6. Upload directory to server", 13, 10
-	menuStr_List_7 db "7. Download directory from server", 13, 10
+	; Feature not yet implemented
+	;menuStr_List_7 db "7. Download directory from server", 13, 10
 	menuStr_List_8 db "8. Quit", 13, 10, "$"
 	menuStr_InvalidChoice db "Invalid choice. Must be between 1 and 8, inclusive.", 13, 10, "$"
 	
@@ -195,10 +188,17 @@ CODE segment
 INCLUDE dos\string.asm
 INCLUDE dos\file.asm
 INCLUDE dos\misc.asm
-INCLUDE dos\serial.asm
 
-; HP-150 specific includes
-INCLUDE hp150\serial.asm
+; Platform-specific includes
+ifdef isHP150
+	INCLUDE hp150\serial.asm
+else
+	ifndef isEmu
+		INCLUDE ibm\serial.asm
+	else
+		INCLUDE emu\serial.asm
+	endif
+endif
 
 ; Lain basic includes
 INCLUDE lain\serial.asm

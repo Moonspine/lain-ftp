@@ -64,7 +64,7 @@ sendSimpleCommand_NOTEMPTY:
 	; Send the command
 	mov cx, bx
 	sub cx, OFFSET serialBuffer
-	callWriteSerialPortBytes
+	call writeSerialPortImpl
 	
 	; Receive the response
 	call readSerialPortUntilLF

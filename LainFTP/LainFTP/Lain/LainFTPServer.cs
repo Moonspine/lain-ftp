@@ -17,7 +17,7 @@ namespace LainFTP.Lain {
         int lastCommandBufferOffset;
         byte[] buffer;
 
-        public LainFTPServer(LainFilesystem filesystem, string comPort, uint baudRate) {
+        public LainFTPServer(LainFilesystem filesystem, string comPort, uint baudRate, bool useDtrRts) {
             port = new SerialPort();
 
             port.PortName = comPort;
@@ -29,7 +29,12 @@ namespace LainFTP.Lain {
             port.ReadTimeout = TIMEOUT_MS;
             port.WriteTimeout = TIMEOUT_MS;
 
-            Console.Out.WriteLine("Bringing server up on " + comPort + " @ " + baudRate + " baud");
+            if (useDtrRts) {
+				port.DtrEnable = true;
+				port.RtsEnable = true;
+			}
+
+			Console.Out.WriteLine("Bringing server up on " + comPort + " @ " + baudRate + " baud");
             Console.Out.WriteLine("No parity, 8 data bits, 1 stop bit, no handshaking");
             Console.Out.WriteLine("");
 

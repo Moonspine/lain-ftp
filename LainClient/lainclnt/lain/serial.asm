@@ -2,34 +2,6 @@
 ; Copyright (c) 2022 Moonspine
 ; Available for use under the MIT license
 
-; Calls the correct readSerialPort* proc
-; Reads up to cx bytes from the serial port whose handle is in bx into the buffer in ds:dx
-callReadSerialPort MACRO
-ifndef isEmu
-ifdef isHP150
-	call readSerialPortHP150
-else
-	call readSerialPortStandardDOS
-endif
-endif
-ENDM
-
-; Calls the appropriate writeSerialPortBytes* proc
-; Writes cx bytes from serialBuffer to the serial port whose handle is in serialPortHandle
-callWriteSerialPortBytes MACRO
-ifndef isEmu
-ifdef isHP150
-	call writeSerialPortBytesHP150
-else
-	mov bx, serialPortHandle
-	mov dx, SEG serialBuffer
-	mov ds, dx
-	mov dx, OFFSET serialBuffer
-	call writeSerialPortBytesStandardDOS
-endif
-endif
-ENDM
-
 ; Reads the serial port into serialBuffer until either:
 ; - LF is encountered
 ; - serialBufferMaxLength bytes have been read
@@ -54,7 +26,7 @@ readSerialPortUntilLF PROC
 	; Read until end of buffer or LF
 LF_READ_LOOP:
 	mov bx, serialPortHandle
-	callReadSerialPort
+	call readSerialPortImpl
 	
 	; Check for LF
 	mov bx, ax
@@ -100,7 +72,7 @@ readSerialPortBytes PROC
 	mov bx, serialPortHandle
 
 B_READ_LOOP:
-	callReadSerialPort
+	call readSerialPortImpl
 	
 	; If we've read all bytes, jump to B_READ_RET
 	cmp cx, ax
@@ -116,22 +88,6 @@ B_READ_LOOP:
 B_READ_RET:
 	ret
 readSerialPortBytes ENDP
-
-; Opens and initializes the serial port (the file handle will be in serialPortHandle)
-setupSerialPort PROC
-	; Open and initialize the serial port
-	callOpenFile serialPortName, serialPortHandle, fileErrorCode
-	cmp fileErrorCode, 0
-	je CONTINUE_AFTER_SERIAL
-	callPrintString serialPortError
-	call exitToDOS
-CONTINUE_AFTER_SERIAL:
-	mov bx, serialPortHandle
-ifdef isHP150
-	call initializeSerialPortHP150 ; DOSBOX can't handle this; It only works on real hardware (comment if emulating)
-endif
-	ret
-setupSerialPort ENDP
 
 ; Terminates the serial buffer with a "$" and prints it to the screen
 ; NOTE: The length of the buffer must be in ax before calling this macro

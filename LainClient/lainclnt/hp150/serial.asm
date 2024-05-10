@@ -7,8 +7,15 @@
 ; It does the following actions:
 ; - Set the port to binary mode (always use 8 bits)
 ; - Set the port to transparent mode (ignores control characters)
-initializeSerialPortHP150 PROC
-	; The following code is specific to the HP-150
+setupSerialPort PROC
+	; Open and initialize the serial port
+	callOpenFile serialPortName, serialPortHandle, fileErrorCode, 0
+	cmp fileErrorCode, 0
+	je CONTINUE_AFTER_SERIAL
+	callPrintString serialPortError
+	call exitToDOS
+CONTINUE_AFTER_SERIAL:
+	mov bx, serialPortHandle
 	
 	; Set binary mode
 	mov dx, SEG hp150SerialBinaryModeSubfunc
@@ -24,18 +31,18 @@ initializeSerialPortHP150 PROC
 	int 21h
 	
 	ret
-initializeSerialPortHP150 ENDP
+setupSerialPort ENDP
 
 ; Reads up to cx bytes from the serial port whose handle is in bx into ds:dx
 ; After the call, ax contains the number of bytes read
-readSerialPortHP150 PROC
+readSerialPortImpl PROC
 	mov ax, 4402h
 	int 21h
 	ret
-readSerialPortHP150 ENDP
+readSerialPortImpl ENDP
 
 ; Sends cx bytes from serialBuffer to the serial port
-writeSerialPortBytesHP150 PROC
+writeSerialPortImpl PROC
 	; Subfunc address
 	mov dx, SEG hp150SerialSendBufferSubfunc
 	mov ds, dx
@@ -56,4 +63,4 @@ writeSerialPortBytesHP150 PROC
 	int 21h
 
 	ret
-writeSerialPortBytesHP150 ENDP
+writeSerialPortImpl ENDP

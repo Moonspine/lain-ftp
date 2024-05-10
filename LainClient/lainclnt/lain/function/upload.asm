@@ -17,7 +17,7 @@ uploadFile PROC
 	callPrintString serialBuffer
 	
 	; Open the file for read
-	callOpenFile inputBuffer, fileHandle, fileErrorCode
+	callOpenFile inputBuffer, fileHandle, fileErrorCode, 0
 	cmp fileErrorCode, 0
 	je uploadFile_FILEOPENED
 	
@@ -39,7 +39,7 @@ uploadFile_FILEOPENED:
 	copyDataNullTerminatedContinue commandStr_UPLOADB_3
 	mov cx, bx
 	sub cx, OFFSET serialBuffer
-	callWriteSerialPortBytes
+	call writeSerialPortImpl
 
 	; Listen for the "OK"
 	call readSerialPortUntilLF
@@ -103,7 +103,7 @@ uploadFile_SEND_NOT_FINISHED:
 	
 	; Send the packet
 	add cx, 2
-	callWriteSerialPortBytes
+	call writeSerialPortImpl
 	
 	; Await a response
 	call readSerialPortUntilLF
@@ -133,7 +133,7 @@ uploadFile_SEND_FINISHED:
 	mov bx, OFFSET serialBuffer
 	mov [bx], cx
 	mov cx, 2
-	callWriteSerialPortBytes
+	call writeSerialPortImpl
 	
 	; Print success message
 	callPrintString uploadStr_Finished

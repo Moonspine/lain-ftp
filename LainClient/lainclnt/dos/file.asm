@@ -2,13 +2,14 @@
 ; Copyright (c) 2022 Moonspine
 ; Available for use under the MIT license
 
-; Calls openFile to open a read-only file with the given filename parameter
+; Calls openFile to open a file with the given filename parameter using the given access mode
 ; After the call: p_outErrorCode will contain the error code (0 if no error)
 ;                 p_outFileHandle will contain the file handle (if no error occurred)
-callOpenFile MACRO p_filename, p_outFileHandle, p_outErrorCode
+callOpenFile MACRO p_filename, p_outFileHandle, p_outErrorCode, p_accessMode
 	mov dx, SEG p_filename
 	mov ds, dx
 	mov dx, OFFSET p_filename
+	mov al, p_accessMode
 	call openFile
 	mov p_outFileHandle, ax
 	mov p_outErrorCode, bx
@@ -97,7 +98,6 @@ ENDM
 ; If an error occurs, ax will be zero and bx will contain the error code
 openFile PROC
 	mov ah, 3dh
-	mov al, 0
 	int 21h
 	jae openFileContinue
 	mov bx, ax
