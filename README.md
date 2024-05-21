@@ -17,7 +17,7 @@ Let me start by saying that if you can't at least boot and run some form of Basi
 Once you manage to get the Lain client program (either basic or exe) onto the host computer, you need to connect the serial cable.  
 The HP version of the executable version of the program will use whatever your last serial port settings were, so you'll need to make that will work with the settings in the server.  
 After you've got the retro computer set up, start the [LainFTP](Releast/LainFTP.exe) server on your modern PC, handing it the COM port and baud rate as command line parameters (it has a help feature if you run it without parameters).  
-Note: You may have to enable DTR and RTS (the third parameter of LainFTP) in order to connect to an IBM PC!
+Note: You may have to enable DTR and RTS (the third parameter of LainFTP) in order to connect to an IBM PC!  
 Note: LainFTP uses the following serial settings at all times (it's part of how the file transfer works), so you need to make sure the retro computer's serial port is configured this way:  
 - No parity
 - 8 data bits
